@@ -11,9 +11,11 @@ use Illuminate\Database\RecordNotFoundException;
 
 class DirectorController extends Controller
 {
+    private const DIRECTOR_TABLE_NAME = "directors";
+
     public function index(){
 
-        return DB::table('directors')
+        return DB::table(DirectorController::DIRECTOR_TABLE_NAME)
                     ->select('id','name','gender') 
                     ->orderBy('id')
                     ->limit(20)
@@ -22,14 +24,25 @@ class DirectorController extends Controller
 
     public function show(int $id){
 
-        return DB::table('directors')
+        $director = DB::table(DirectorController::DIRECTOR_TABLE_NAME)
                     ->select('id','name','gender','department')
                     ->find($id);
+            
+        if(!$director)
+            abort(404);
+
+        $movies = DB::table('movies')
+            ->select('id','title')
+            ->where('director_id',$director->id)
+            ->get();
+
+        $director->movies = $movies;
+        return $director;
     }
 
     public function withMovies(){
 
-        $directors =  DB::table('directors')
+        $directors =  DB::table(DirectorController::DIRECTOR_TABLE_NAME)
                     ->select('id','name','gender') 
                     ->orderBy('id')
                     ->limit(20)
@@ -49,12 +62,10 @@ class DirectorController extends Controller
 
     public function WithAllMoviesInfo(int $id){
         // $director = Director::findOrFail($id);
-        $director = DB::table('directors')
+        $director = DB::table(DirectorController::DIRECTOR_TABLE_NAME)
                         ->select('id','name','gender','department')
-                        ->find($id);
-
-        if(!$director)
-            abort(404);
+                        ->where('id',$id)
+                        ->firstOrFail($id);
 
         $movies = DB::table('movies')
                     ->select('id','title','original_title','tagline','budget','revenue','release_date','vote_count','vote_average','popularity','overview','director_id')

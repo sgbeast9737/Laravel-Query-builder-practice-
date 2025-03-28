@@ -20,6 +20,7 @@ Route::get('/', function (Request $request) {
 
 Route::controller(MovieController::class)->group(function(){
     Route::get('/movies','index');
+    Route::get('/movies/info','info');
     Route::get('/movies/{id}','show');
 });
 
