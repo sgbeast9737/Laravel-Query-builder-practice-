@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\Director;
 use App\Models\Movie;
 use Illuminate\Database\RecordNotFoundException;
+use stdClass;
 
 class DirectorController extends Controller
 {
@@ -24,19 +25,22 @@ class DirectorController extends Controller
 
     public function show(int $id){
 
+        if(!DB::table(DirectorController::DIRECTOR_TABLE_NAME)->where('id',$id)->exists())
+            abort(404);
+
         $director = DB::table(DirectorController::DIRECTOR_TABLE_NAME)
                     ->select('id','name','gender','department')
                     ->find($id);
             
-        if(!$director)
-            abort(404);
-
-        $movies = DB::table('movies')
-            ->select('id','title')
+        // $movies = DB::table('movies')
+        DB::table('movies')
+            // ->select('id','title')
             ->where('director_id',$director->id)
-            ->get();
+            ->orderBy('id')
+            // ->get();
+            ->lazy()->each(fn($obj) => $director->movies[] = $obj->title);
 
-        $director->movies = $movies;
+        // $director->movies = $movies;
         return $director;
     }
 
@@ -50,9 +54,8 @@ class DirectorController extends Controller
 
         $directors->map(function($director){
             $data = DB::table('movies')
-                        ->select('id','title')
                         ->where('director_id',$director->id)
-                        ->get();
+                        ->pluck('title','id');
 
             $director->movies = $data;
         });
@@ -67,12 +70,25 @@ class DirectorController extends Controller
                         ->where('id',$id)
                         ->firstOrFail($id);
 
-        $movies = DB::table('movies')
-                    ->select('id','title','original_title','tagline','budget','revenue','release_date','vote_count','vote_average','popularity','overview','director_id')
-                    ->where('director_id',$director->id)
-                    ->get();
+        
+        // $movies = DB::table('movies')
+        //             ->select('id','title','original_title','tagline','budget','revenue','release_date','vote_count','vote_average','popularity','overview','director_id')
+        //             ->where('director_id',$director->id)
+        //             ->get();
 
-        $director->movies = $movies;
+        // $director->movies = $movies;
+
+        $movie_data = [];
+
+        DB::table('movies')->where('director_id',$id)->orderBy('id')->chunk(3,function($dirs) use (&$movie_data){
+            
+            foreach ($dirs as $dir) {
+                $movie_data[] = $dir->title;
+            }
+
+        });
+
+        $director->movies = $movie_data;
 
         return $director;
     }

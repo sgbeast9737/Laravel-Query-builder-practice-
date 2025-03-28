@@ -20,10 +20,14 @@ class MovieController extends Controller
         return implode(",",$columnArray);
     } 
 
-    public function index(){
+    public function index(Request $request){
+
+        $page = $request->input('page');
+
         return DB::table(MovieController::MOVIE_TABLE_NAME)
                     ->select("id","title","original_title","budget","revenue","release_date","tagline")
-                    ->limit(20)
+                    ->offset($page == 1 ? 0 : $page * 10)
+                    ->limit(10)
                     ->get();
     }
 
@@ -41,6 +45,10 @@ class MovieController extends Controller
         $movieInfo = DB::table(MovieController::MOVIE_TABLE_NAME)
                         ->selectRaw("count(id) as total_movies")
                         ->first();
+
+        $movieInfo->popular_movie_name = DB::table(MovieController::MOVIE_TABLE_NAME)->selectRaw('title,max(popularity)')->value('title');
+
+        $movieInfo->average_movies_budget = DB::table(MovieController::MOVIE_TABLE_NAME)->avg('budget');
                     
         $movieInfo->popular = DB::table(MovieController::MOVIE_TABLE_NAME)
                     ->selectRaw(MovieController::COLUMNS_TO_SHOW . ', max(popularity) as popular')
