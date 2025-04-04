@@ -4,6 +4,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\DB;
 
+use App\Http\Middleware\checkToken;
+use App\Http\Middleware\test;
 use App\Http\Controllers\MovieController;
 use App\Http\Controllers\DirectorController;
 
@@ -19,7 +21,8 @@ Route::get('/', function (Request $request) {
 });
 
 Route::controller(MovieController::class)->group(function(){
-    Route::get('/movies','index');
+    Route::get('/movies','index')->middleware([checkToken::class,test::class]);
+    // Route::get('/movies','index');
     Route::get('/movies/info','info');
     Route::get('/movies/{id}','show');
 });
