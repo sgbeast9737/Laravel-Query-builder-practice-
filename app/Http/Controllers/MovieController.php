@@ -30,14 +30,9 @@ class MovieController extends Controller
         //             ->limit(10)
         //             ->get();
 
-        // return DB::table(MovieController::MOVIE_TABLE_NAME)
-        //             ->select("id","title","original_title","budget","revenue","release_date","tagline")
-        //             ->paginate(10);
-        // return request()->input("user");
-        // request()->flash("user");
-
-        // return request()->hasFile("file");
-        return request()->input();
+        return DB::table(MovieController::MOVIE_TABLE_NAME)
+                    ->select("id","title","original_title","budget","revenue","release_date","tagline")
+                    ->paginate(10);
     }
 
     public function show(int $id){
